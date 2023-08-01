@@ -131,42 +131,22 @@ function NOTIFICATION_PIPELINE_NULLIFIER($NOTIFICATION_OWNER_ID, $NOTIFICATION_P
 // => "$NOTIFICATION_PIPELINE" PARAMETER => IS USED TO SPECIFY THE EXACT NAME OF THE NOTIFICATION-PIPELINE WE WANT TO GET ROUTE FOR.
 function NOTIFICATION_PIPELINE_TO_ROUTE_CONVERTER($NOTIFICATION_PIPELINE){
     // run a test on the inpute notification-pipeline and trandescend it into its equivalent route in this laravel project.
-    if($NOTIFICATION_PIPELINE === "applying_candidates"){
-        return route('manage.candidates', 1);
-    }else if($NOTIFICATION_PIPELINE === "active_candidates"){
-        return route('accepted.candidates', 1);
-    }else if($NOTIFICATION_PIPELINE === "candidates_awaiting_confirmation"){
-        return route('awaiting.confirmation', 1);
-    }else if($NOTIFICATION_PIPELINE === "declined_candidates"){
-        return route('declined.candidates', 1);
-    }else if($NOTIFICATION_PIPELINE === "business_completed_jobs"){
-        return route('candidates.completed.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "business_expired_jobs"){
-        return route('manage.expired.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_applied_jobs"){
-        return route('students.applied.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_active_jobs"){
-        return route('students.active.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_jobs_awaiting_confirmation"){
-        return route('students.jobs.awaiting.confirmation', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_completed_jobs"){
-        return route('students.completed.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_declined_jobs"){
-        return route('students.jobs.declined', 1);
-    }else if($NOTIFICATION_PIPELINE === "student_expired_jobs"){
-        return route('students.expired.jobs', 1);
-    }else if($NOTIFICATION_PIPELINE === "appointments"){
-        if(auth()->user()->user_role === "student"){
-            return route('student.appointment.loader', 1);
-        }else if(auth()->user()->user_role === "business"){
-            return route('business.appointment.loader', 1);
-        }
+    if($NOTIFICATION_PIPELINE === "pre-registered"){
+        return route('resident.visitor.log');
+    }else if($NOTIFICATION_PIPELINE === "registered"){
+        return route('security.visitor.log');
+    }else if($NOTIFICATION_PIPELINE === "accepted"){
+        return route('resident.visitor.log');
+    }else if($NOTIFICATION_PIPELINE === "rejected"){
+        return route('security.visitor.log');
+    }else if($NOTIFICATION_PIPELINE === "validated"){
+        return route('resident.visitor.log');
     }else if($NOTIFICATION_PIPELINE === "NONE"){
         return "";
     }else{
         // if no valide notification-pipeline is entered system will return the login page controller, and since user is already logged in, the loggin
         // controller will redirect user to either business or student dashboard, depending on who is currently logged-in.
-        return route('app.general.login');
+        return route('login');
     }
 }
 
