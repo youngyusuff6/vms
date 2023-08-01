@@ -14,12 +14,12 @@ class Notification_Description extends Model
        protected $primaryKey = "notification_id";
        // Here we creat the fillable property, to use it to declare the colums in our database table that can be mass assigned. 
        protected $fillable = [ 
-           'resident_id', 
-           'notification_controller_pipeline', 
-           'notification_description', 
-           'action_initiator_id', 
-           'created_at', 
-           'updated_at'
+        'owner_id', 
+        'notification_controller_pipeline', 
+        'notification_description', 
+        'action_initiator_id', 
+        'created_at', 
+        'updated_at'
        ];
        // just set this property to false if you dont want to use timestamp
        public $timestamps = true;
