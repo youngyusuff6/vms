@@ -14,7 +14,7 @@ class Notification_Controller_Pipeline extends Model
       protected $primaryKey = "notification_controller_id";
       // Here we creat the fillable property, to use it to declare the colums in our database table that can be mass assigned. 
       protected $fillable = [ 
-          'user_id', 
+          'owner_id', 
           'pre-registered',
           'registered',
           'accepted',

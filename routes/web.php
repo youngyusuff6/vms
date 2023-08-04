@@ -49,6 +49,7 @@ Route::group(['middleware' => 'security'], function () {
     //VISITORS VALIDATION
     Route::post('/security/visitor/validate', [SecurityVisitorController::class, 'postValidation'])->name('security.visitor.validated');
     Route::get('/security/visitor/validation', [SecurityVisitorController::class, 'getValidation'])->name('security.visitor.validate');
+    Route::get('/security/general/notification/viewer/{pg1}',  [General_Notification::class, "Notifications"])->name('general.notification.viewer');
     Route::post('/security/visitor/signout/{id}', [SecurityVisitorController::class, 'signout'])->name('security.visitor.signout');
 
 
@@ -71,6 +72,8 @@ Route::group(['middleware' => 'resident'], function () {
     Route::get('/resident/visitor/validate/{id}', [ResidentVisitorController::class, 'validate'])->name('resident.visitor.validate');
     Route::post('/resident/visitor/accept/{id}', [ResidentVisitorController::class, 'accept'])->name('resident.visitor.accept');
     Route::post('/resident/visitor/reject/{id}', [ResidentVisitorController::class, 'reject'])->name('resident.visitor.reject');
+    //NOTIFICATION
+    Route::get('/resident/general/notification/viewer/{pg1}',  [General_Notification::class, "Notifications"])->name('general.notification.viewers');
    
     
     
@@ -80,6 +83,6 @@ Route::group(['middleware' => 'resident'], function () {
 });
 Route::group( ['middleware' => ['auth','backHistory' ]], function(){
    // Route::get('/general/profile/unique/viewers/{pg1}', [General_Profile_Viewers::class, "Profile_Viewers"])->name('profile.unique.viewers');
-    Route::get('/general/notification/viewer/{pg1}', [General_Notification::class, "Notifications"])->name('general.notification.viewer');
+    //Route::get('/general/notification/viewer/{pg1}', [General_Notification::class, "Notifications"])->name('general.notification.viewer');
     //Route::get('/general/notification/{token}/{notification_token}', [General_Notification::class, "delete_notification"])->name('notification.delete');
 });

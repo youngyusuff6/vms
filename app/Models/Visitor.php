@@ -21,6 +21,7 @@ class Visitor extends Model
         'sign_out_time',
         'status',
         'reg_type',
+        'registered_by',
     ];
 
     // Add a method to generate a unique ID for visitors

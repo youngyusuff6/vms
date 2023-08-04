@@ -7,6 +7,8 @@ use App\Models\Visitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class SecurityVisitorController extends Controller
 {
@@ -24,6 +26,7 @@ class SecurityVisitorController extends Controller
 
     public function registeration(Request $request)
 {
+    $USER_ID = Auth::id();
     // Validate the form inputs
     $request->validate([
         'name' => 'required|max:100',
@@ -31,7 +34,7 @@ class SecurityVisitorController extends Controller
         'phone' => 'required|numeric|min:11',
         'purpose' => 'required|max:255',
         'visit_date' => 'required|date|after_or_equal:today',
-        'visit_time' => 'required',
+        'visit_time' => 'required|after_or_equal:' . now()->format('H:i'),
         'visitor' => 'required', // Add validation for the "Visitor" dropdown
     ]);
 
@@ -79,19 +82,50 @@ class SecurityVisitorController extends Controller
     $visitor->reg_type = "reg";
     $visitor->status = "Pending";
     $visitor->resident_id = $residentProfileId; // Associate with resident profile
+    $visitor->registered_by = $USER_ID;
     $visitor->save();
 
     // Show SweetAlert success message
     session()->flash('success_message', 'Visitor registered successfully. Visitor`s ID is ' . $visitorId);
+
+    // CONSTRUCT THE NOTIFICATION DESCRIPTION FOR RESIDENTS
+    $NOTIFICATION_DESCRIPTION = ucfirst($name)." ". "with unique ID ". $visitorId ." wants to visit you, kindly check your log to validate their visit.";
+    // REGISTER A NEW NOTIFICATION FOR THE RESIDENT WHO VISITOR WANTS TO VISIT.
+    CREATE_NOTIFICATION($residentProfileId, "registered", $NOTIFICATION_DESCRIPTION);
+    // // CONSTRUCT THE NOTIFICATION DESCRIPTION FOR SECURITY
+    $SECURITY_NOTIFICATION_DESCRIPTION = "You have registered ".ucfirst($name)." with ID ".$visitorId.". Kindly wait for residents approval.";
+    // REGISTER A NEW NOTIFICATION FOR THE STUDENT WHOSE APPLICATION HAVE JUST BEEN APPROVED.
+    // CREATE_NOTIFICATION($USER_ID, "student_jobs_awaiting_confirmation", $STUDENT_NOTIFICATION_DESCRIPTION, $JOB_OWNER_ID);
+    // HERE WE CREATE A NOTIFICATION DESCRIPTION IN THE DESCRIPTION TABLE ALONE, WITHOUT TAMPERING WITH THE NOTIFICATION PIPELINE TABLE.
+    NOTIFICATION_DESCRIPTION_SETTER($USER_ID, "NONE", $SECURITY_NOTIFICATION_DESCRIPTION, $residentProfileId);
+
+    //Mail
+    // Send the email to the visitor
+        Mail::send('emails.visitor_waiting', ['visitor' => $visitor], function ($message) use ($email) {
+            $message->from('noreply@vms.unilorin.edu.ng', 'VMS');
+            $message->to($email)->subject('Scheduled Visit Information');
+        });
+        
+        $resident = User::where('id', $residentProfileId)->first(); // Use first() to get the user model
+        $residentEmail = $resident->email; // Corrected 'mail' to 'email'
+        Mail::send('emails.resident_notification', ['visitor' => $visitor, 'resident' => $resident], function ($message) use ($residentEmail, $visitor) {
+            $message->from('noreply@vms.unilorin.edu.ng', 'VMS');
+            $message->to($residentEmail)->subject('Visitor Waiting for Validation');
+        });
+
 
     // Redirect back or to another page
     return redirect()->back();
 }
 
     public function log(){
+    $USER_ID = Auth::id();
     $Log_object = Visitor::where('resident_id', '<>', NULL);
     $Log_count = $Log_object->count();
     $Log = $Log_object->latest('updated_at')->get();
+     // JUST INCASE WE HAVE A NEW NOTIFICATION COUNTED FOR THIS CONTROLLERS OUTPUT, WE RUN THIS FUNCTION TO NULLIFY IT.
+    NOTIFICATION_PIPELINE_NULLIFIER($USER_ID, "accepted");
+    NOTIFICATION_PIPELINE_NULLIFIER($USER_ID, "rejected");
 
     return view('dashboard.security.visitlog')->with([
         'LOG' => $Log,
@@ -108,7 +142,7 @@ public function getValidation(Request $request)
         // Search for the visitor by unique ID
         $visitor = Visitor::where('unique_id', $searchId)->first();
         if ($visitor) {
-            if ($visitor->status === 'Success') {
+            if ($visitor->status === 'Rejected' || $visitor->status === 'Completed' || $visitor->status === 'In Progress' ) {
                 return redirect()->route('security.visitor.validate')->with('error_message', 'Visitor has already been validated.');
             }
             // If found, return the visitor details in the visitor_details view
@@ -127,11 +161,28 @@ public function postValidation(Request $request)
 {
     $visitorId = $request->input('visitor_id');
     $visitor = Visitor::find($visitorId);
+    $validated_by = Auth::id();
     if ($visitor) {
         // Update the status and signing time
         $visitor->sign_in_time = now();
         $visitor->status = 'In Progress';
         $visitor->save();
+    
+         // CONSTRUCT THE NOTIFICATION DESCRIPTION FOR RESIDENTS
+         $NOTIFICATION_DESCRIPTION = ucfirst($visitor->name)." ". "with unique ID ". $visitor->unique_id ." has been validated, Visitor is on their way!";
+         // REGISTER A NEW NOTIFICATION FOR THE RESIDENT WHO VISITOR WANTS TO VISIT.
+         CREATE_NOTIFICATION( $visitor->resident_id, "validated", $NOTIFICATION_DESCRIPTION);
+         // // CONSTRUCT THE NOTIFICATION DESCRIPTION FOR SECURITY
+         $SECURITY_NOTIFICATION_DESCRIPTION = "You have successfully validate ".ucfirst($visitor->name)." with ID ". $visitor->unique_id.". They should proceed to complete their visit.";
+     
+         NOTIFICATION_DESCRIPTION_SETTER( $validated_by , "NONE", $SECURITY_NOTIFICATION_DESCRIPTION, $visitor->resident_id);
+
+       // Send the email to the visitor
+            Mail::send('emails.visitor_validated', ['visitor' => $visitor], function ($message) use ($visitor) {
+                $message->from('noreply@vms.unilorin.edu.ng', 'VMS');
+                $message->to($visitor->email)->subject('Visit Validated');
+            });
+
 
         return redirect()->route('security.visitor.log')->with('success_message', 'Visitor validated successfully.');
     }

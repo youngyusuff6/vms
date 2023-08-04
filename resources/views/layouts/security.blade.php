@@ -54,36 +54,59 @@
       </li>
     </ul>
     
+    @php
+    // GET THE CURRENT LOGGED-IN BUSINESS ACCOUNT ID
+    $NOTIFICATION_OWNER_ID = Auth::user()->id;
+    // GET NOTIFICATION COUNTS
+    $NOTIFICATIONS = NOTIFICATION_PIPELINES_HARVESTER(Auth::user()->id, [ 'pre_registered','registered', 'accepted', 'rejected', 'validated']);
+    // FETCH THE ACTUAL NOTIFICATIONS
+    $NOTIFICATION_DESCRIPTIONS = NOTIFICATION_FETCHER($NOTIFICATION_OWNER_ID, 5);
+    @endphp     
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-      <!-- Notifications Dropdown Menu -->
-      <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#">
-          <i class="far fa-bell"></i>
-          <span class="badge badge-warning navbar-badge">15</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-          <span class="dropdown-item dropdown-header">15 Notifications</span>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-envelope mr-2"></i> 4 new messages
-            <span class="float-right text-muted text-sm">3 mins</span>
+         <!-- Notifications Dropdown Menu -->
+         <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#">
+              <i class="far fa-bell"></i>
+              @if ($NOTIFICATIONS['aggregate_notification'] != 0)
+              <span class="badge badge-warning navbar-badge">{{ $NOTIFICATIONS['aggregate_notification'] }}</span>
+              @endif
           </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-users mr-2"></i> 8 friend requests
-            <span class="float-right text-muted text-sm">12 hours</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-file mr-2"></i> 3 new reports
-            <span class="float-right text-muted text-sm">2 days</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-        </div>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="width: 300px;">
+              <span class="dropdown-item dropdown-header">{{ $NOTIFICATIONS['aggregate_notification'] }} Notifications</span>
+              @if (count($NOTIFICATION_DESCRIPTIONS) > 0)
+              <div class="dropdown-divider"></div>
+              @foreach ($NOTIFICATION_DESCRIPTIONS as $data)
+              <a href="{{ NOTIFICATION_PIPELINE_TO_ROUTE_CONVERTER($data->notification_controller_pipeline) }}" class="dropdown-item">
+                  <span style="white-space: normal; word-break: break-all;">{{ $data->notification_description }}</span>
+                  <span class="float-right text-muted text-sm">{{ MSQL_Timestamp_toHuman_Readable_Format($data->created_at) }}</span>
+              </a>
+              @endforeach
+              <div class="dropdown-divider"></div>
+              <a href="{{ route('general.notification.viewer',1) }}" class="dropdown-item dropdown-footer">See All Notifications</a>
+              </div>
+              @else
+              <div class="dropdown-menu dropdown-menu-end">
+                  <div id="DZ_W_Notification1" class="widget-media dlab-scroll p-3" style="max-height:380px;">
+                      <ul class="timeline">
+                          <li>
+                              <div class="timeline-panel">
+                                  <div class="media-body">
+                                      <h6 class="mb-1">No notification</h6>
+                                  </div>
+                              </div>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+              @endif
       </li>
+      
+      
+      
+     
+
       <li class="nav-item">
         <a class="nav-link" data-widget="fullscreen" href="#" role="button">
           <i class="fas fa-expand-arrows-alt"></i>
@@ -162,7 +185,10 @@
               <p>Profile</p>
             </a>
           </li>
-        
+          @php
+          $NOTIFICATIONS = NOTIFICATION_PIPELINES_HARVESTER(Auth::user()->id, [ 'pre_registered','registered', 'accepted', 'rejected', 'validated']);
+          @endphp
+      
           <li class="nav-item">
             <a href="{{route('security.visitor.validate')}}" class="nav-link">
               <i class="fas fa-user-check nav-icon"></i>
@@ -185,9 +211,13 @@
           </li>
 
           <li class="nav-item">
-            <a href="pages/examples/profile.html" class="nav-link">
+            <a href="{{route('general.notification.viewer',1)}}" class="nav-link">
               <i class="fas fa-bell nav-icon"></i>
               <p>Notification</p>
+              @if ($NOTIFICATIONS['pre_registered'] + $NOTIFICATIONS['registered'] + $NOTIFICATIONS['accepted'] + $NOTIFICATIONS['rejected'] + $NOTIFICATIONS['validated'] > 0)
+              <span class="badge light text-white bg-danger rounded-circle">{{ $NOTIFICATIONS['pre_registered'] + $NOTIFICATIONS['registered'] + $NOTIFICATIONS['accepted'] + $NOTIFICATIONS['rejected'] + $NOTIFICATIONS['validated'] }}</span>
+              @endif
+
             </a>
           </li>
           

@@ -1,16 +1,16 @@
 @extends('layouts.security')
-@section('title', 'Security Dashboard')
+@section('title') Security Dashboard @endsection
 
 @section('content')
 <div class="container-fluid">
-    <!-- Small boxes (Stat box) -->
     <div class="row">
+        <!-- Small boxes (Stat boxes) -->
         <div class="col-lg-3 col-6">
             <!-- small box -->
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>150</h3>
-                    <p>New Orders</p>
+                    <h3>{{ $chartData['totalVisitors'] }}</h3>
+                    <p>Total Visitors</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-bag"></i>
@@ -23,8 +23,8 @@
             <!-- small box -->
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>53<sup style="font-size: 20px">%</sup></h3>
-                    <p>Bounce Rate</p>
+                    <h3>{{ $chartData['visitorsToday'] }}</h3>
+                    <p>Visitors Today</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-stats-bars"></i>
@@ -37,8 +37,8 @@
             <!-- small box -->
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>44</h3>
-                    <p>User Registrations</p>
+                    <h3>{{ $chartData['visitorsRegisteredByMe'] }}</h3>
+                    <p>Visitors Registered by Me</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-person-add"></i>
@@ -47,22 +47,9 @@
             </div>
         </div>
         <!-- ./col -->
-        <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>65</h3>
-                    <p>Unique Visitors</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-pie-graph"></i>
-                </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-        </div>
-        <!-- ./col -->
     </div>
     <!-- /.row -->
+
     <!-- Main row -->
     <div class="row">
         <!-- Left col -->
@@ -70,37 +57,51 @@
             <!-- Custom tabs (Charts with tabs)-->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-pie mr-1"></i>
-                        Sales
-                    </h3>
-                    <div class="card-tools">
-                        <ul class="nav nav-pills ml-auto">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#revenue-chart" data-toggle="tab">Area</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#sales-chart" data-toggle="tab">Donut</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div><!-- /.card-header -->
+                    <h3 class="card-title">Visitor Statistics</h3>
+                </div>
                 <div class="card-body">
-                    <div class="tab-content p-0">
-                        <!-- Morris chart - Sales -->
-                        <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 300px;">
-                            <canvas id="revenue-chart-canvas" height="300" style="height: 300px;"></canvas>
-                        </div>
-                        <div class="chart tab-pane" id="sales-chart" style="position: relative; height: 300px;">
-                            <canvas id="sales-chart-canvas" height="300" style="height: 300px;"></canvas>
-                        </div>
-                    </div>
-                </div><!-- /.card-body -->
+                    <canvas id="visitorsChart"></canvas>
+                </div>
             </div>
-            <!-- /.card -->
         </section>
         <!-- /.col -->
     </div>
     <!-- /.row -->
 </div>
+@endsection
+
+@section('scripts')
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Get the chart data from the PHP variable and parse it as JSON
+    const chartData = @json($chartData);
+
+    // Access the individual data points
+    const totalVisitors = chartData.totalVisitors;
+    const visitorsToday = chartData.visitorsToday;
+    const visitorsRegisteredByMe = chartData.visitorsRegisteredByMe;
+
+    // Create the chart using Chart.js
+    const visitorsChart = new Chart(document.getElementById('visitorsChart'), {
+        type: 'bar', // You can choose the chart type (e.g., 'bar', 'line', 'pie', etc.)
+        data: {
+            labels: ['Total Visitors', 'Visitors Today', 'Visitors Registered by Me'],
+            datasets: [{
+                label: 'Visitors Data',
+                data: [totalVisitors, visitorsToday, visitorsRegisteredByMe],
+                backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 @endsection

@@ -129,26 +129,28 @@ function NOTIFICATION_PIPELINE_NULLIFIER($NOTIFICATION_OWNER_ID, $NOTIFICATION_P
 // FUNCTION TO HELP US USE THE NOTIFICATION-PIPELINE DATA TO PRODUCE THE ROUTE EQUIVALENT TO THE CONTROLLER THAT IS DESIGNED TO SHOW THE DATA FOR THIS
 // NOTIFICATION.
 // => "$NOTIFICATION_PIPELINE" PARAMETER => IS USED TO SPECIFY THE EXACT NAME OF THE NOTIFICATION-PIPELINE WE WANT TO GET ROUTE FOR.
-function NOTIFICATION_PIPELINE_TO_ROUTE_CONVERTER($NOTIFICATION_PIPELINE){
-    // run a test on the inpute notification-pipeline and trandescend it into its equivalent route in this laravel project.
-    if($NOTIFICATION_PIPELINE === "pre-registered"){
-        return route('resident.visitor.log');
-    }else if($NOTIFICATION_PIPELINE === "registered"){
-        return route('security.visitor.log');
-    }else if($NOTIFICATION_PIPELINE === "accepted"){
-        return route('resident.visitor.log');
-    }else if($NOTIFICATION_PIPELINE === "rejected"){
-        return route('security.visitor.log');
-    }else if($NOTIFICATION_PIPELINE === "validated"){
-        return route('resident.visitor.log');
-    }else if($NOTIFICATION_PIPELINE === "NONE"){
-        return "";
-    }else{
-        // if no valide notification-pipeline is entered system will return the login page controller, and since user is already logged in, the loggin
-        // controller will redirect user to either business or student dashboard, depending on who is currently logged-in.
-        return route('login');
+function NOTIFICATION_PIPELINE_TO_ROUTE_CONVERTER($NOTIFICATION_PIPELINE) {
+    $role = Auth::user()->role;
+
+    switch ($NOTIFICATION_PIPELINE) {
+        case "pre-registered":
+            return $role === "resident" ? route('resident.visitor.log') : route('security.visitor.log');
+        case "registered":
+            return $role === "resident" ? route('resident.visitor.validation') : route('security.visitor.log');
+        case "accepted":
+            return $role === "resident" ? route('resident.visitor.log') : route('security.visitor.log');
+        case "rejected":
+            return $role === "resident" ? route('resident.visitor.log') : route('security.visitor.log');
+        case "validated":
+            return $role === "resident" ? route('resident.visitor.log') : route('security.visitor.log');
+        case "NONE":
+            return "";
+        default:
+            // if no valid notification-pipeline is entered, the system will return the dashboard route based on the user's role
+            return $role === "resident" ? route('resident.dashboard') : route('security.dashboard');
     }
 }
+
 
 
 
