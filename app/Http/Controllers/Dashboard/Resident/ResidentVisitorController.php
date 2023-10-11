@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class ResidentVisitorController extends Controller
 {
@@ -16,6 +17,22 @@ class ResidentVisitorController extends Controller
     }
 
     public function registeration(Request $request){ 
+        Validator::extend('visit_time_after_now', function ($attribute, $value, $parameters, $validator) use ($request) {
+            $visitDate = $request->input('visit_date');
+            $now = now();
+        
+            // Compare the visit_date with today
+            $isToday = $visitDate === $now->format('Y-m-d');
+        
+            // If the visit_date is today, check if the visit_time is after the current time
+            if ($isToday && $value <= $now->format('H:i')) {
+                return false;
+            }
+        
+            return true;
+        });
+        
+        // ...
         $USER_ID = Auth::id();
         // Validate the form inputs
         $request->validate([
@@ -23,8 +40,11 @@ class ResidentVisitorController extends Controller
             'email' => 'required|email',
             'phone' => 'required|numeric|min:11',
             'purpose' => 'required|max:255',
-            'visit_date' => 'required|date|after_or_equal:today', // Ensure the visit_date is after or equal to today
-            'visit_time' => 'required|after_or_equal:' . now()->format('H:i'), // Ensure the visit_time is after or equal to the current time
+            'visit_date' => 'required|date|after_or_equal:today',
+            'visit_time' => [
+                'required_if:visit_date,' . now()->format('Y-m-d'),
+                'visit_time_after_now',
+            ], // Ensure the visit_time is after or equal to the current time
         ]);
     
         // Get the form inputs
@@ -115,6 +135,7 @@ class ResidentVisitorController extends Controller
     // JUST INCASE WE HAVE A NEW NOTIFICATION COUNTED FOR THIS CONTROLLERS OUTPUT, WE RUN THIS FUNCTION TO NULLIFY IT.
     NOTIFICATION_PIPELINE_NULLIFIER($USER_ID, "accepted");
     NOTIFICATION_PIPELINE_NULLIFIER($USER_ID, "rejected");
+    NOTIFICATION_PIPELINE_NULLIFIER($USER_ID, "validated");
 
     return view('dashboard.resident.visitlog')->with([
         'LOG' => $Log,

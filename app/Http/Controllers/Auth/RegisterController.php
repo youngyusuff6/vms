@@ -58,7 +58,9 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => 'required'
+            'role' => 'required',
+            'phone_number' => ['required', 'numeric', 'min:10'],
+           
         ]);
     }
     
@@ -97,9 +99,19 @@ class RegisterController extends Controller
                 'badge_number' => $BadgeNumber
             ]);
         } else {
-            Resident_Profile::create([
+            $residentProfile = new Resident_Profile([
                 'user_id' => $user->id,
+                'phone_number' => $data['phone_number'],
+                'office_number' => null,
+                'address' => null,
+                'occupation' => null,
+                'emergency_contact_name' => null,
+                'emergency_contact_number' => null,
+                'id_number' => null,
+                'vehicle_plate_number' => null,
             ]);
+    
+            $residentProfile->save();
         }
     
         return $user;

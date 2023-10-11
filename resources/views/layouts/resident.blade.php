@@ -29,6 +29,13 @@
  <link rel="stylesheet" href="{{url("DASHBOARD_ASSETS/plugins/daterangepicker/daterangepicker.css")}}">
  <!-- summernote -->
  <link rel="stylesheet" href="{{url("DASHBOARD_ASSETS/plugins/summernote/summernote-bs4.min.css")}}">
+ <style>
+  @media (max-width: 768px) {
+  .preloader {
+    display: none;
+  }
+}
+ </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

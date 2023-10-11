@@ -18,13 +18,13 @@ class CreateResidentProfileTable extends Migration
             $table->unsignedBigInteger('user_id')->unique();
             $table->string('phone_number');
             $table->string('profile_image')->nullable();
-            $table->string('office_number')->unique();
+            $table->string('office_number')->unique()->nullable();
             $table->boolean('office_number_updated')->default(false);
-            $table->string('address');
-            $table->string('occupation');
+            $table->string('address')->nullable();
+            $table->string('occupation')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('emergency_contact_name');
-            $table->string('emergency_contact_number');
+            $table->string('emergency_contact_name')->nullable();
+            $table->string('emergency_contact_number')->nullable();
             $table->string('id_number')->nullable();
             $table->string('vehicle_plate_number')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

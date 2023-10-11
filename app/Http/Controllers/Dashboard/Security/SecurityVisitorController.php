@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class SecurityVisitorController extends Controller
 {
@@ -26,17 +27,39 @@ class SecurityVisitorController extends Controller
 
     public function registeration(Request $request)
 {
-    $USER_ID = Auth::id();
-    // Validate the form inputs
-    $request->validate([
-        'name' => 'required|max:100',
-        'email' => 'required|email',
-        'phone' => 'required|numeric|min:11',
-        'purpose' => 'required|max:255',
-        'visit_date' => 'required|date|after_or_equal:today',
-        'visit_time' => 'required|after_or_equal:' . now()->format('H:i'),
-        'visitor' => 'required', // Add validation for the "Visitor" dropdown
-    ]);
+    
+Validator::extend('visit_time_after_now', function ($attribute, $value, $parameters, $validator) use ($request) {
+    $visitDate = $request->input('visit_date');
+    $now = now();
+
+    // Compare the visit_date with today
+    $isToday = $visitDate === $now->format('Y-m-d');
+
+    // If the visit_date is today, check if the visit_time is after the current time
+    if ($isToday && $value <= $now->format('H:i')) {
+        return false;
+    }
+
+    return true;
+});
+
+// ...
+
+$USER_ID = Auth::id();
+// Validate the form inputs
+$request->validate([
+    'name' => 'required|max:100',
+    'email' => 'required|email',
+    'phone' => 'required|numeric|min:11',
+    'purpose' => 'required|max:255',
+    'visit_date' => 'required|date|after_or_equal:today',
+    'visit_time' => [
+        'required_if:visit_date,' . now()->format('Y-m-d'),
+        'visit_time_after_now',
+    ],
+    'visitor' => 'required', // Add validation for the "Visitor" dropdown
+]);
+
 
     // Get the form inputs
     $name = $request->input('name');

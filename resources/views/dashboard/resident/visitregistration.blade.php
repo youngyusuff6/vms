@@ -1,6 +1,6 @@
 @extends('layouts.resident')
 @section('title')Visitors Registration @endsection
-@section('page-title') Register Visitor @endsection
+@section('page-title') Pre-register Visitor @endsection
 
 @section('content')
 <div class="container">
